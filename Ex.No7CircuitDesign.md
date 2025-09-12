@@ -54,9 +54,12 @@ not(1, 0).
 
 ### Output:
 
+
 <img width="959" height="176" alt="image" src="https://github.com/user-attachments/assets/168b4d80-a3b6-4649-9d4d-752ec6a9bedf" />
 
+
 <img width="956" height="144" alt="image" src="https://github.com/user-attachments/assets/1750bc31-3d84-4f3b-b5cd-c4a13d0c4050" />
+
 
 <img width="958" height="183" alt="image" src="https://github.com/user-attachments/assets/3c893cbb-1870-4878-bb76-648a2373ebc1" />
 
