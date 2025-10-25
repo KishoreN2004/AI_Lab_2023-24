@@ -33,71 +33,117 @@ Cancer Prediction Using Logistic Regression
 
 ## Code
 
-```python
-# Import packages
+```
+# Step 1: Install packages
+!pip install gradio scikit-learn pandas numpy --quiet
+
+# Step 2: Imports
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score
 import gradio as gr
 
-# Load dataset
-from sklearn.datasets import load_breast_cancer
-data = load_breast_cancer()
-X = data.data
-y = data.target
-feature_names = data.feature_names
+# Step 3: Simulate Lung Cancer dataset
+data_dict = {
+    "Age": [45, 60, 30, 50, 65, 40, 70, 55, 35, 28],
+    "Smoking": [1,1,0,1,1,0,1,0,0,0],
+    "Alcohol": [1,0,0,1,1,0,1,0,0,0],
+    "Obesity": [0,1,0,1,1,0,1,0,0,0],
+    "Family_History": [1,1,0,1,1,0,1,0,0,0],
+    "Cancer": [1,1,0,1,1,0,1,0,0,0]
+}
+data = pd.DataFrame(data_dict)
 
-# Split data
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+# Step 4: Split dataset
+x = data.drop(['Cancer'], axis=1)
+y = data['Cancer']
+x_train, x_test, y_train, y_test = train_test_split(x, y, random_state=42)
 
-# Scale features
+# Step 5: Scale features
 scaler = StandardScaler()
-X_train_scaled = scaler.fit_transform(X_train)
-X_test_scaled = scaler.transform(X_test)
+x_train_scaled = scaler.fit_transform(x_train)
+x_test_scaled = scaler.transform(x_test)
 
-# Train Logistic Regression
+# Step 6: Train Logistic Regression model
 model = LogisticRegression(max_iter=1000)
-model.fit(X_train_scaled, y_train)
+model.fit(x_train_scaled, y_train)
 
-# Sample inputs (automatically included)
-samples = [
-    [17.99, 10.38, 122.8, 1001, 0.1184, 0.2776, 0.3001, 0.1471, 0.2419, 0.07871, 1.095, 0.9053, 8.589, 153.4, 0.006399, 0.04904, 0.05373, 0.01587, 0.03003, 0.006193, 25.38, 17.33, 184.6, 2019, 0.1622, 0.6656, 0.7119, 0.2654, 0.4601, 0.1189],
-    [20.57, 17.77, 132.9, 1326, 0.08474, 0.07864, 0.0869, 0.07017, 0.1812, 0.05667, 0.5435, 0.7339, 3.398, 74.08, 0.005225, 0.01308, 0.0186, 0.0134, 0.01389, 0.003532, 24.99, 23.41, 158.8, 1956, 0.1238, 0.1866, 0.2416, 0.186, 0.275, 0.08902],
-    [19.69, 21.25, 130, 1203, 0.1096, 0.1599, 0.1974, 0.1279, 0.2069, 0.05999, 0.7456, 0.7869, 4.5, 94.03, 0.00615, 0.03681, 0.04427, 0.01885, 0.02499, 0.009043, 23.57, 25.53, 152.5, 1575, 0.1444, 0.4245, 0.4504, 0.243, 0.3613, 0.08758]
+# Step 6.1: Compute accuracy
+y_pred = model.predict(x_test_scaled)
+model_accuracy = accuracy_score(y_test, y_pred)
+
+# Step 7: Prediction function with empty input handling
+def lung_cancer_prediction(Age, Smoking, Alcohol, Obesity, Family_History):
+    try:
+        x_input = np.array([
+            Age if Age is not None else 0,
+            Smoking if Smoking is not None else 0,
+            Alcohol if Alcohol is not None else 0,
+            Obesity if Obesity is not None else 0,
+            Family_History if Family_History is not None else 0
+        ]).reshape(1, -1)
+        # Scale the input
+        x_input_scaled = scaler.transform(x_input)
+        pred = model.predict(x_input_scaled)
+        return "YES" if pred[0] == 1 else "NO"
+    except:
+        return "Invalid Input"
+
+# Step 8: Predefined sample patients
+sample_patients = [
+    {"Age":45,"Smoking":1,"Alcohol":1,"Obesity":0,"Family_History":1},
+    {"Age":30,"Smoking":0,"Alcohol":0,"Obesity":0,"Family_History":0},
+    {"Age":65,"Smoking":1,"Alcohol":1,"Obesity":1,"Family_History":1},
+    {"Age":28,"Smoking":0,"Alcohol":0,"Obesity":0,"Family_History":0},
+    {"Age":55,"Smoking":0,"Alcohol":0,"Obesity":0,"Family_History":0},
+    {"Age":70,"Smoking":1,"Alcohol":1,"Obesity":1,"Family_History":1},
+    {"Age":None,"Smoking":None,"Alcohol":None,"Obesity":None,"Family_History":None},  # empty sample
 ]
 
-# Function for Gradio prediction
-def cancer_prediction(*features):
-    x = np.array(features).reshape(1, -1)
-    prediction = model.predict(scaler.transform(x))
-    return "Malignant" if prediction[0]==0 else "Benign"
+# Step 9: Gradio Interface
+with gr.Blocks() as demo:
+    gr.Markdown(f"## Lung Cancer Prediction - Preloaded Samples\n**Model Accuracy:** {model_accuracy*100:.2f}%")
 
-# Launch Gradio
-inputs = [gr.Number(label=feature) for feature in feature_names]
-app = gr.Interface(fn=cancer_prediction, inputs=inputs, outputs="text", description="Breast Cancer Prediction")
-app.launch(share=True)
+    # Create input components for each sample
+    input_components = []
+    output_boxes = []
 
-# Optional: Automatic predictions for predefined samples
-print("Sample Predictions:")
-for i, sample in enumerate(samples):
-    pred = model.predict(scaler.transform([sample]))
-    label = "Malignant" if pred[0]==0 else "Benign"
-    print(f"Sample {i+1}: {label}")
+    for i, patient in enumerate(sample_patients):
+        with gr.Row():
+            age = gr.Number(value=patient["Age"], label=f"Sample {i+1} - Age")
+            smoking = gr.Number(value=patient["Smoking"], label=f"Sample {i+1} - Smoking")
+            alcohol = gr.Number(value=patient["Alcohol"], label=f"Sample {i+1} - Alcohol")
+            obesity = gr.Number(value=patient["Obesity"], label=f"Sample {i+1} - Obesity")
+            family = gr.Number(value=patient["Family_History"], label=f"Sample {i+1} - Family History")
+            out = gr.Textbox(label=f"Prediction Sample {i+1}")
+            input_components.append((age, smoking, alcohol, obesity, family))
+            output_boxes.append(out)
+
+    def predict_all(*args):
+        results = []
+        for i in range(len(sample_patients)):
+            Age, Smoking, Alcohol, Obesity, Family_History = args[i*5:(i+1)*5]
+            result = lung_cancer_prediction(Age, Smoking, Alcohol, Obesity, Family_History)
+            results.append(result)
+        return results
+
+    btn = gr.Button("Predict All Samples")
+    btn.click(predict_all, inputs=[comp for tup in input_components for comp in tup], outputs=output_boxes)
+
+demo.launch(share=True)
 ```
 
 ## Output
 
-<img width="1571" height="595" alt="image" src="https://github.com/user-attachments/assets/a757fb75-0d9a-425b-a133-e599721397b3" />
-<img width="1590" height="384" alt="image" src="https://github.com/user-attachments/assets/b1edbce1-4163-4c81-b42a-d80107ccb621" />
+<img width="1567" height="631" alt="image" src="https://github.com/user-attachments/assets/99b30167-248b-47fe-ba79-ac4039163087" />
+<img width="1602" height="539" alt="image" src="https://github.com/user-attachments/assets/82a2742e-9005-4d2d-86fb-1bda4db987c4" />
 
 ## Observation
-
 Logistic Regression successfully classified most samples correctly.
-
 Standardizing features improved model performance.
-
 Gradio interface allows easy testing with custom inputs.
 
 ## Result
