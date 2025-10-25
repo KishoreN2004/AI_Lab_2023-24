@@ -75,7 +75,7 @@ model.fit(x_train_scaled, y_train)
 y_pred = model.predict(x_test_scaled)
 model_accuracy = accuracy_score(y_test, y_pred)
 
-# Step 7: Prediction function with empty input handling
+# Step 7: Prediction function
 def lung_cancer_prediction(Age, Smoking, Alcohol, Obesity, Family_History):
     try:
         x_input = np.array([
@@ -85,53 +85,31 @@ def lung_cancer_prediction(Age, Smoking, Alcohol, Obesity, Family_History):
             Obesity if Obesity is not None else 0,
             Family_History if Family_History is not None else 0
         ]).reshape(1, -1)
-        # Scale the input
         x_input_scaled = scaler.transform(x_input)
         pred = model.predict(x_input_scaled)
         return "YES" if pred[0] == 1 else "NO"
     except:
         return "Invalid Input"
 
-# Step 8: Predefined sample patients
-sample_patients = [
-    {"Age":45,"Smoking":1,"Alcohol":1,"Obesity":0,"Family_History":1},
-    {"Age":30,"Smoking":0,"Alcohol":0,"Obesity":0,"Family_History":0},
-    {"Age":65,"Smoking":1,"Alcohol":1,"Obesity":1,"Family_History":1},
-    {"Age":28,"Smoking":0,"Alcohol":0,"Obesity":0,"Family_History":0},
-    {"Age":55,"Smoking":0,"Alcohol":0,"Obesity":0,"Family_History":0},
-    {"Age":70,"Smoking":1,"Alcohol":1,"Obesity":1,"Family_History":1},
-    {"Age":None,"Smoking":None,"Alcohol":None,"Obesity":None,"Family_History":None},  # empty sample
-]
-
-# Step 9: Gradio Interface
+# Step 8: Gradio Interface for user input
 with gr.Blocks() as demo:
-    gr.Markdown(f"## Lung Cancer Prediction - Preloaded Samples\n**Model Accuracy:** {model_accuracy*100:.2f}%")
-
-    # Create input components for each sample
-    input_components = []
-    output_boxes = []
-
-    for i, patient in enumerate(sample_patients):
-        with gr.Row():
-            age = gr.Number(value=patient["Age"], label=f"Sample {i+1} - Age")
-            smoking = gr.Number(value=patient["Smoking"], label=f"Sample {i+1} - Smoking")
-            alcohol = gr.Number(value=patient["Alcohol"], label=f"Sample {i+1} - Alcohol")
-            obesity = gr.Number(value=patient["Obesity"], label=f"Sample {i+1} - Obesity")
-            family = gr.Number(value=patient["Family_History"], label=f"Sample {i+1} - Family History")
-            out = gr.Textbox(label=f"Prediction Sample {i+1}")
-            input_components.append((age, smoking, alcohol, obesity, family))
-            output_boxes.append(out)
-
-    def predict_all(*args):
-        results = []
-        for i in range(len(sample_patients)):
-            Age, Smoking, Alcohol, Obesity, Family_History = args[i*5:(i+1)*5]
-            result = lung_cancer_prediction(Age, Smoking, Alcohol, Obesity, Family_History)
-            results.append(result)
-        return results
-
-    btn = gr.Button("Predict All Samples")
-    btn.click(predict_all, inputs=[comp for tup in input_components for comp in tup], outputs=output_boxes)
+    gr.Markdown(f"## Lung Cancer Prediction\n**Model Accuracy:** {model_accuracy*100:.2f}%")
+    
+    with gr.Row():
+        age_input = gr.Number(label="Age")
+        smoking_input = gr.Number(label="Smoking (0 or 1)")
+        alcohol_input = gr.Number(label="Alcohol (0 or 1)")
+        obesity_input = gr.Number(label="Obesity (0 or 1)")
+        family_input = gr.Number(label="Family History (0 or 1)")
+    
+    prediction_output = gr.Textbox(label="Prediction")
+    
+    btn = gr.Button("Predict")
+    btn.click(
+        fn=lung_cancer_prediction, 
+        inputs=[age_input, smoking_input, alcohol_input, obesity_input, family_input],
+        outputs=prediction_output
+    )
 
 demo.launch(share=True)
 ```
