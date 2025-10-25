@@ -1,6 +1,6 @@
 # Ex.No: 10 Learning – Use Supervised Learning  
-### DATE:                                                                            
-### REGISTER NUMBER : 
+### DATE:  25/10/2025                                                                          
+### REGISTER NUMBER : 212223065001
 # Lab Experiment: Cancer Prediction Using Logistic Regression
 
 ## Aim
@@ -16,16 +16,22 @@ To build a machine learning model to predict cancer diagnosis based on patient f
 Cancer diagnosis is a critical application of AI in healthcare. Logistic Regression can be used to classify tumors as benign or malignant based on features like radius, texture, smoothness, etc. This experiment demonstrates a working prediction model with an interactive interface.
 
 ## Algorithm Used
-- **Logistic Regression**: A classification algorithm that predicts probability of class membership.  
+Cancer Prediction Using Logistic Regression
+**Input:** Patient tumor features (numerical values)  
+**Output:** Cancer status – Malignant or Benign  
 
-**Steps:**
-1. Load dataset.
-2. Split dataset into training and testing sets.
-3. Standardize features.
-4. Train Logistic Regression model.
-5. Build Gradio interface for predictions.
+1. **Load Dataset:** Use `sklearn.datasets` breast cancer dataset. Separate features (`X`) and target labels (`y`).  
+2. **Preprocess Data:** Split into training and testing sets. Standardize features using `StandardScaler`.  
+3. **Train Model:** Initialize and train `LogisticRegression` on scaled training data.  
+4. **Prediction Function:**  
+   - Take input features from user  
+   - Scale using the same `StandardScaler`  
+   - Predict class using trained model  
+   - Convert numeric output to labels: `0 → Malignant`, `1 → Benign`  
+5. **Gradio Interface:** Create input fields for features, link the prediction function, display output as text.  
+6. **Test Samples:** Provide predefined sample inputs to automatically show predictions. 
 
-## Python Code
+## Code
 
 ```python
 # Import packages
@@ -81,10 +87,18 @@ for i, sample in enumerate(samples):
     print(f"Sample {i+1}: {label}")
 ```
 
-## OUTPUT
+## Output
 
+<img width="1571" height="595" alt="image" src="https://github.com/user-attachments/assets/a757fb75-0d9a-425b-a133-e599721397b3" />
+<img width="1590" height="384" alt="image" src="https://github.com/user-attachments/assets/b1edbce1-4163-4c81-b42a-d80107ccb621" />
 
+## Observation
 
+Logistic Regression successfully classified most samples correctly.
 
+Standardizing features improved model performance.
 
+Gradio interface allows easy testing with custom inputs.
 
+## Result
+This experiment demonstrates a working AI model for cancer prediction. Using Logistic Regression and Gradio, predictions can be made interactively or on predefined samples.
